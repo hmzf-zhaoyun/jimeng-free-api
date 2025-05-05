@@ -22,8 +22,14 @@ export default {
 
         // 获取所有会话
         '/sessions': async (request: Request) => {
-            const sessions = await sessionManager.getAllSessions();
-            return { sessions };
+            try {
+                const sessions = await sessionManager.getAllSessions();
+                // 确保sessions始终是数组
+                return { sessions: Array.isArray(sessions) ? sessions : [] };
+            } catch (error) {
+                logger.error('获取会话列表失败:', error);
+                throw new APIException(EX.API_REQUEST_FAILED, '获取会话列表失败：' + (error?.message || '未知错误'));
+            }
         }
     },
 

@@ -7,7 +7,7 @@
  */
 
 // 全局变量
-const API_BASE_URL = ''; // 使用相对路径，方便部署
+const API_BASE_URL = '/v1'; // 修改为与后端路由前缀匹配
 const sessionsTableBody = document.getElementById('sessionsTableBody');
 const refreshSessionsBtn = document.getElementById('refreshSessionsBtn');
 const addSessionForm = document.getElementById('addSessionForm');
@@ -48,23 +48,95 @@ function setupEventListeners() {
 }
 
 /**
+ * 使用超时和重试机制执行fetch请求
+ * @param {string} url 请求URL
+ * @param {Object} options fetch选项
+ * @param {number} timeout 超时时间（毫秒）
+ * @param {number} retries 最大重试次数
+ * @returns {Promise<Response>} fetch响应
+ */
+async function fetchWithTimeout(url, options = {}, timeout = 10000, retries = 2) {
+  let currentAttempt = 0;
+
+  while (currentAttempt <= retries) {
+    try {
+      // 使用AbortController实现超时控制
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+      const fetchOptions = {
+        ...options,
+        signal: controller.signal
+      };
+
+      const response = await fetch(url, fetchOptions);
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      currentAttempt++;
+
+      // 如果是超时错误或网络错误，并且还有重试次数，则继续重试
+      if ((error.name === 'AbortError' || error.name === 'TypeError') && currentAttempt <= retries) {
+        console.warn(`请求失败，正在重试 (${currentAttempt}/${retries})...`);
+        // 可以在这里添加延迟，例如：await new Promise(r => setTimeout(r, 1000));
+        continue;
+      }
+
+      // 其他错误或已达到最大重试次数，则抛出错误
+      throw error;
+    }
+  }
+}
+
+/**
  * 加载会话列表
  */
 async function loadSessions() {
   try {
     showLoading(refreshSessionsBtn);
 
-    const response = await fetch(`${API_BASE_URL}/admin/sessions`);
-    const data = await response.json();
+    // 使用带有超时和重试的fetch
+    const response = await fetchWithTimeout(`${API_BASE_URL}/admin/sessions`);
 
-    if (response.ok) {
-      renderSessionsTable(data.sessions);
-    } else {
-      showErrorMessage('加载会话列表失败：' + (data.message || '未知错误'));
+    // 首先检查响应状态
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage;
+      try {
+        // 尝试将错误响应解析为JSON
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || '未知错误';
+      } catch (parseError) {
+        // 如果解析失败，使用原始错误文本
+        console.error('解析错误响应失败:', parseError);
+        errorMessage = errorText || `HTTP错误 ${response.status}`;
+      }
+      showErrorMessage('加载会话列表失败：' + errorMessage);
+      return;
     }
+
+    // 获取响应文本并在解析前检查是否为空
+    const responseText = await response.text();
+    if (!responseText.trim()) {
+      showErrorMessage('加载会话列表失败：服务器返回了空响应');
+      return;
+    }
+
+    // 尝试解析JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (jsonError) {
+      console.error('解析JSON响应失败:', jsonError, '原始响应:', responseText);
+      showErrorMessage('加载会话列表失败：无法解析服务器响应');
+      return;
+    }
+
+    // 处理解析后的数据
+    renderSessionsTable(data.sessions);
   } catch (error) {
     console.error('加载会话列表失败:', error);
-    showErrorMessage('加载会话列表失败：' + error.message);
+    showErrorMessage('加载会话列表失败：' + (error.message || '网络错误'));
   } finally {
     hideLoading(refreshSessionsBtn, '<i class="bi bi-arrow-clockwise"></i> 刷新');
   }
@@ -167,7 +239,7 @@ async function handleAddSession(event) {
     const submitBtn = addSessionForm.querySelector('button[type="submit"]');
     showLoading(submitBtn);
 
-    const response = await fetch(`${API_BASE_URL}/admin/sessions`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/admin/sessions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -178,7 +250,8 @@ async function handleAddSession(event) {
       })
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    const data = responseText ? JSON.parse(responseText) : {};
 
     if (response.ok) {
       showAddSessionResult('SessionID添加成功', 'success');
@@ -189,7 +262,7 @@ async function handleAddSession(event) {
     }
   } catch (error) {
     console.error('添加会话失败:', error);
-    showAddSessionResult(`添加失败：${error.message}`, 'danger');
+    showAddSessionResult(`添加失败：${error.message || '网络错误'}`, 'danger');
   } finally {
     const submitBtn = addSessionForm.querySelector('button[type="submit"]');
     hideLoading(submitBtn, '<i class="bi bi-plus-lg"></i> 添加');
@@ -210,7 +283,7 @@ async function handleTestSession() {
   try {
     showLoading(testSessionBtn);
 
-    const response = await fetch(`${API_BASE_URL}/admin/test-session`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/admin/test-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -218,7 +291,8 @@ async function handleTestSession() {
       body: JSON.stringify({ sessionId })
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    const data = responseText ? JSON.parse(responseText) : {};
 
     if (response.ok) {
       if (data.valid) {
@@ -231,7 +305,7 @@ async function handleTestSession() {
     }
   } catch (error) {
     console.error('测试会话失败:', error);
-    showAddSessionResult(`测试失败：${error.message}`, 'danger');
+    showAddSessionResult(`测试失败：${error.message || '网络错误'}`, 'danger');
   } finally {
     hideLoading(testSessionBtn, '<i class="bi bi-check-circle"></i> 测试有效性');
   }
@@ -248,7 +322,7 @@ async function handleSaveEditSession() {
   try {
     showLoading(saveEditSessionBtn);
 
-    const response = await fetch(`${API_BASE_URL}/admin/sessions/${sessionId}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/admin/sessions/${sessionId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
@@ -259,7 +333,8 @@ async function handleSaveEditSession() {
       })
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    const data = responseText ? JSON.parse(responseText) : {};
 
     if (response.ok) {
       editSessionModal.hide();
@@ -269,7 +344,7 @@ async function handleSaveEditSession() {
     }
   } catch (error) {
     console.error('更新会话失败:', error);
-    alert(`更新失败：${error.message}`);
+    alert(`更新失败：${error.message || '网络错误'}`);
   } finally {
     hideLoading(saveEditSessionBtn, '保存');
   }
@@ -284,11 +359,12 @@ async function handleDeleteSession() {
   try {
     showLoading(confirmDeleteSessionBtn);
 
-    const response = await fetch(`${API_BASE_URL}/admin/sessions/${sessionId}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/admin/sessions/${sessionId}`, {
       method: 'DELETE'
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    const data = responseText ? JSON.parse(responseText) : {};
 
     if (response.ok) {
       deleteSessionModal.hide();
@@ -298,7 +374,7 @@ async function handleDeleteSession() {
     }
   } catch (error) {
     console.error('删除会话失败:', error);
-    alert(`删除失败：${error.message}`);
+    alert(`删除失败：${error.message || '网络错误'}`);
   } finally {
     hideLoading(confirmDeleteSessionBtn, '删除');
   }
