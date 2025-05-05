@@ -9,14 +9,14 @@ import { getTokenLiveStatus } from '@/api/controllers/core.ts';
 import logger from '@/lib/logger.ts';
 
 export default {
-    prefix: '/admin',
+    prefix: '/v1/admin',
 
     get: {
         // 管理页面入口
         '/': async () => {
             // 返回管理页面
             return new Response(null, {
-                redirect: '/admin/index.html'
+                redirect: '/v1/admin/index.html'
             });
         },
 
