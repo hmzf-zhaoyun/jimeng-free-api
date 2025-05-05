@@ -81,7 +81,7 @@ MiniMax（海螺 AI）接口转 API [hailuo-free-api](https://github.com/LLM-Red
 ## 效果展示
 
 ```text
-可爱的熊猫漫画，熊猫看到地上有一个叫“即梦”的时间机器，然后说了一句“我借用一下没事吧”
+可爱的熊猫漫画，熊猫看到地上有一个叫"即梦"的时间机器，然后说了一句"我借用一下没事吧"
 ```
 
 ![example1](./doc/example-1.jpeg)
@@ -93,8 +93,10 @@ MiniMax（海螺 AI）接口转 API [hailuo-free-api](https://github.com/LLM-Red
 拉取镜像并启动服务
 
 ```shell
-docker run -it -d --init --name jimeng-free-api -p 8000:8000 -e TZ=Asia/Shanghai vinlic/jimeng-free-api:latest
+docker run -it -d --init --name jimeng-free-api -p 8000:8000 -e TZ=Asia/Shanghai -e SESSION_ID=your_session_id vinlic/jimeng-free-api:latest
 ```
+
+> 注意：通过设置`SESSION_ID`环境变量，可以直接在容器中配置 sessionid，无需在请求头中传递。多个 sessionid 可以使用逗号分隔，如：`SESSION_ID=sessionid1,sessionid2,sessionid3`。
 
 查看服务实时日志
 
@@ -128,6 +130,7 @@ services:
       - "8000:8000"
     environment:
       - TZ=Asia/Shanghai
+      - SESSION_ID=your_session_id1,your_session_id2
 ```
 
 ### Render 部署

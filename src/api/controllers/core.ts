@@ -9,6 +9,7 @@ import EX from "@/api/consts/exceptions.ts";
 import { createParser } from "eventsource-parser";
 import logger from "@/lib/logger.ts";
 import util from "@/lib/util.ts";
+import environment from "@/lib/environment.ts";
 
 // 模型名称
 const MODEL_NAME = "jimeng";
@@ -264,6 +265,13 @@ export function checkResult(result: AxiosResponse) {
  * @param authorization 认证字符串
  */
 export function tokenSplit(authorization: string) {
+  // 优先从环境变量获取sessionid
+  const envSessionId = environment.envVars.SESSION_ID;
+  if (envSessionId) {
+    // 环境变量中的sessionid也支持多个，用逗号分隔
+    return envSessionId.split(",");
+  }
+  // 如果环境变量未设置，则从请求头获取
   return authorization.replace("Bearer ", "").split(",");
 }
 

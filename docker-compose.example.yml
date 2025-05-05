@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  jimeng-free-api:
+    container_name: jimeng-free-api
+    image: vinlic/jimeng-free-api:latest
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - TZ=Asia/Shanghai
+      - SESSION_ID=your_session_id1,your_session_id2 # 在这里填入你的sessionid，多个用逗号分隔
+    # volumes:
+    #   - ./logs:/app/logs  # 可选：挂载日志目录

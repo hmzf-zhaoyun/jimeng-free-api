@@ -21,6 +21,8 @@ class Environment {
     host?: string;
     /** 服务端口 */
     port?: number;
+    /** sessionId */
+    sessionId?: string;
     /** 包参数 */
     package: any;
 
@@ -32,6 +34,7 @@ class Environment {
         this.name = cmdArgs.name || envVars.SERVER_NAME || undefined;
         this.host = cmdArgs.host || envVars.SERVER_HOST || undefined;
         this.port = Number(cmdArgs.port || envVars.SERVER_PORT) ? Number(cmdArgs.port || envVars.SERVER_PORT) : undefined;
+        this.sessionId = cmdArgs.sessionId || envVars.SESSION_ID || undefined;
         this.package = _package;
     }
 
