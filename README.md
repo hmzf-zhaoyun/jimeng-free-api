@@ -38,6 +38,7 @@ MiniMax（海螺 AI）接口转 API [hailuo-free-api](https://github.com/LLM-Red
   - [免责声明](#免责声明)
   - [接入准备](#接入准备)
     - [多账号接入](#多账号接入)
+    - [SessionID 管理](#sessionid管理)
   - [效果展示](#效果展示)
   - [Docker 部署](#docker-部署)
     - [Docker-compose 部署](#docker-compose-部署)
@@ -77,6 +78,28 @@ MiniMax（海螺 AI）接口转 API [hailuo-free-api](https://github.com/LLM-Red
 `Authorization: Bearer sessionid1,sessionid2,sessionid3`
 
 每次请求服务会从中挑选一个。
+
+### SessionID 管理
+
+本项目提供了一个简单的 SessionID 管理页面，可以在浏览器中访问：
+
+```
+http://你的服务地址:端口/admin
+```
+
+在管理页面中，你可以：
+
+1. 添加新的 SessionID 并测试其有效性
+2. 查看所有已添加的 SessionID 列表
+3. 编辑 SessionID 的名称和状态（激活/停用）
+4. 删除不需要的 SessionID
+
+通过环境变量`SESSION_ID`导入的会话 ID 也会显示在管理页面中，支持从两种方式获取 SessionID：
+
+- 通过环境变量`SESSION_ID`（多个 ID 用逗号分隔）
+- 通过管理页面添加
+
+> 注意：添加的 SessionID 会存储在`data/sessions.json`文件中，请确保该目录有写入权限。
 
 ## 效果展示
 
@@ -226,7 +249,7 @@ pm2 stop jimeng-free-api
 
 **POST /v1/chat/completions**
 
-header 需要设置 Authorization 头部：
+> **重要更新**：现在不再强制要求请求中包含 Authorization 头。系统会自动从环境变量和会话管理器中获取可用的会话 ID。如果您仍然想使用 Authorization 头，可以按以下格式设置：
 
 ```
 Authorization: Bearer [sessionid]
@@ -281,7 +304,7 @@ Authorization: Bearer [sessionid]
 
 **POST /v1/images/generations**
 
-header 需要设置 Authorization 头部：
+> **重要更新**：现在不再强制要求请求中包含 Authorization 头。系统会自动从环境变量和会话管理器中获取可用的会话 ID。如果您仍然想使用 Authorization 头，可以按以下格式设置：
 
 ```
 Authorization: Bearer [sessionid]

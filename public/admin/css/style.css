@@ -1,0 +1,100 @@
+/* 全局样式 */
+body {
+    background-color: #f8f9fa;
+    padding: 20px 0;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1000px;
+}
+
+/* 登录面板样式 */
+.login-panel {
+    max-width: 450px;
+    margin: 100px auto;
+}
+
+/* 管理面板样式 */
+.admin-panel {
+    margin: 40px auto;
+}
+
+/* 表格样式 */
+.table td {
+    vertical-align: middle;
+}
+
+.session-id-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 添加会话结果消息样式 */
+.result-message {
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+/* 切换开关样式 */
+.form-switch {
+    padding-left: 2.5em;
+}
+
+/* 加载中动画 */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.2em;
+}
+
+/* 响应式调整 */
+@media (max-width: 767.98px) {
+    .login-panel {
+        margin: 50px auto;
+    }
+    
+    .admin-panel {
+        margin: 20px auto;
+    }
+    
+    .btn-group-sm > .btn, .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .card-header {
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* 会话状态标签样式 */
+.session-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.session-active {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.session-inactive {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+/* 提供一个短暂的淡入淡出动画效果 */
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+} 

@@ -262,17 +262,41 @@ export function checkResult(result: AxiosResponse) {
 /**
  * Token切分
  *
- * @param authorization 认证字符串
+ * @param authorization 认证字符串（可选）
  */
-export function tokenSplit(authorization: string) {
+export function tokenSplit(authorization?: string) {
   // 优先从环境变量获取sessionid
   const envSessionId = environment.envVars.SESSION_ID;
   if (envSessionId) {
     // 环境变量中的sessionid也支持多个，用逗号分隔
     return envSessionId.split(",");
   }
-  // 如果环境变量未设置，则从请求头获取
-  return authorization.replace("Bearer ", "").split(",");
+  // 如果环境变量未设置，且提供了authorization，则从请求头获取
+  if (authorization) {
+    return authorization.replace("Bearer ", "").split(",");
+  }
+  // 如果两者都没有，返回空数组
+  return [];
+}
+
+/**
+ * Token切分（使用sessionManager）
+ *
+ * @param authorization 认证字符串（可选）
+ */
+export async function tokenSplitWithManager(authorization?: string) {
+  const sessionManager = (await import('@/lib/managers/session-manager.ts')).default;
+  
+  // 获取活跃的会话ID
+  const activeSessionIds = await sessionManager.getActiveSessionIds();
+  
+  // 如果有活跃的会话ID，则返回它们
+  if (activeSessionIds.length > 0) {
+    return activeSessionIds;
+  }
+  
+  // 否则使用原有的方法
+  return tokenSplit(authorization);
 }
 
 /**

@@ -4,8 +4,13 @@ import Response from '@/lib/response/Response.ts';
 import images from "./images.ts";
 import chat from "./chat.ts";
 import ping from "./ping.ts";
-import token from './token.js';
+import token from './token.ts';
 import models from './models.ts';
+import admin from './admin.ts';
+import sessionManager from '@/lib/managers/session-manager.ts';
+
+// 初始化sessionManager
+sessionManager.initialize();
 
 export default [
     {
@@ -25,5 +30,6 @@ export default [
     chat,
     ping,
     token,
-    models
+    models,
+    admin
 ];
