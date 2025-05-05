@@ -33,7 +33,7 @@ export default [
                     redirect: '/v1/admin'
                 });
             },
-            '/admin/*': async (request) => {
+            '/admin/:path(.*)': async (request) => {
                 // 提取 /admin/ 后的路径
                 const path = request.url.split('/admin/')[1];
                 return new Response(null, {
@@ -53,7 +53,7 @@ export default [
                     }
                 });
             },
-            '/v1/admin/js/*': async (request) => {
+            '/v1/admin/js/:path(.*)': async (request) => {
                 // 提取 /v1/admin/js/ 后的路径
                 const path = request.url.split('/v1/admin/js/')[1];
                 const content = await fs.readFile(`public/admin/js/${path}`);
@@ -64,7 +64,7 @@ export default [
                     }
                 });
             },
-            '/v1/admin/css/*': async (request) => {
+            '/v1/admin/css/:path(.*)': async (request) => {
                 // 提取 /v1/admin/css/ 后的路径
                 const path = request.url.split('/v1/admin/css/')[1];
                 const content = await fs.readFile(`public/admin/css/${path}`);
